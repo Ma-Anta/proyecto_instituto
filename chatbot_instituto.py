@@ -1,3 +1,4 @@
+# coding: utf-8
 # Para instalar
 # pylint: disable=import-error
 # $ pip install --user -U nltk
