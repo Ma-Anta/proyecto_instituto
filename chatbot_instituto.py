@@ -7,7 +7,7 @@ from nltk import word_tokenize, Text, FreqDist
 from nltk.chat.util import Chat, reflections
 import re
 import random
-import bbdd as base
+import App_POO.bbdd.bbdd as base
 from datetime import datetime
 from datetime import timedelta
 
