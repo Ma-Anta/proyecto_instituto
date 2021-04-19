@@ -106,24 +106,49 @@ def get_nivel_carrera(match,p_carrera):
     consulta = base.bbdd.procedimiento("proy_inst_f_obtener_nivel_carrera",[p_carrera])[0][0]
     return consulta
 
-"""def get_materias_carrera(match,p_carrera):
-    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_materias_carrera",[p_carrera])[0][0]
+def get_materias_carreras(match,p_carrera):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_materias_carreras",[p_carrera])
+    retorno = ''
+    for materia in consulta:
+        retorno = retorno +"Año: " +str(materia[0]) +' - Materia: '+ materia[1]+"\n"
+    return retorno
+
+def get_datos_docentes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_datos_docentes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Apellido y nombre: " +dato[0] +' - Email: '+ dato[1]+"\n"
+    return retorno
+
+def get_datos_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_datos_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Apellido y nombre: " +dato[0] +' - Email: '+ dato[1]+"\n"
+    return retorno
+
+def get_legajo_estudiante(match,p_dni):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_legajo_estudiantes",[p_dni])[0][0]
     return consulta
-"""
-"""     def get_asistencia_x_fechas(self,p_fecha_desde,p_fecha_hasta):
-        consulta = self.conect.procedimiento("",[p_fecha_desde,p_fecha_hasta])[0][0]
-        return consulta
-"""
-pares_docentes = [
-    [   r"(.*)docente|docente(.*)|docente",
+
+def get_legajo_docente(match,p_dni):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_legajo_docentes",[p_dni])[0][0]
+    return consulta
+
+pares = [
+    [   r"INICIO",
+    ["Hola soy un bot, eres estudiante, docente o invitado?"],None
+    ],
+
+    [   r"(.*)docente|docente(.*)|(.*)docente(.*)|docente",
         ["Ingrese la letra 'L'+ espacio, seguido de su número de legajo"],None
     ],
     [
         r"(L [0-9]{1,2})",
-        ["Hola {}. Desea saber acerca de materias, carreras, datos de docentes o datos de estudiantes?"],
+        ["Hola {}. Si desea saber        \nACERCA DE                INGRESE        \nmaterias                 MATERIA        \ncarreras                 CARRERA        \ndatos de docentes        DDOC        \ndatos de estudiantes     DEST"],
         get_nomape_docente
     ],
-    [   r"(.*)materia|materia(.*)|(.*)materia",
+    [   r"MATERIA",
         ["Ingrese la letra 'M'+ espacio, seguido el nombre de la materia."],None
 
     ],
@@ -131,7 +156,7 @@ pares_docentes = [
         ["{}"],
         get_datos_materias
     ],
-    [   r"(.*)carrera|carrera(.*)|(.*)carrera",
+    [   r"CARRERA",
         ["CARRERA: Profesorado de educacion inicial\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+I        \nTitulo          CT+espacio+I        \nNivel           CN+espacio+I        \n\nCARRERA: Profesorado de educacion especial\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+E        \nTitulo          CT+espacio+E        \nNivel           CN+espacio+E        \n\nCARRERA: Tecnicatura superior en analisis desarrollo y programacion de aplicaciones\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+A        \nTitulo          CT+espacio+A        \nNivel           CN+espacio+A        \n"],None
     ],
     [   r"CT (.*)",
@@ -142,10 +167,47 @@ pares_docentes = [
         ["{}"],
         get_nivel_carrera
     ],
-    ]
+    [   r"CM (.*)",
+        ["{}"],
+        get_materias_carreras
+    ],
+    [   r"DDOC",
+        ["Ingrese el DD + espacio seguido del número de legajo del docente"],None
+    ],
+    [   r"(DD [0-9]{1,2})",
+        ["{}"],
+        get_datos_docentes
+    ],
+    [   r"DEST",
+        ["Ingrese el DE + espacio seguido del número de legajo del estudiante"],None
+    ],
+    [   r"(DE [0-9]{1,2})",
+        ["{}"],
+        get_datos_estudiantes
+    ],
+    
+    [   r"(.*)estudiante|estudiante(.*)|(.*)estudiante(.*)|estudiante",
+        ["Ingrese la letra 'DNI'+ espacio, seguido de su número de dni"],None
+    ],
+    [   r"(DNI [0-9]{8})",
+        ["Hola {}. Si desea saber        \nACERCA DE                INGRESE        \nmaterias                 MATERIA        \ncarreras                 CARRERA        \ndatos de docentes        DDOC        \ndatos de estudiantes     DEST"],
+        get_nomape_estudiante
+    ],
+    [   r"legajo|(.*)legajo|legajo(.*)|(.*)legajo(.*)",
+        ["\nSI ES          INGRESE        \nEstudiante     LEG_EST + espacio + Nro de DNI        \nDocente        LEG_DOC + espacio + Nro de DNI"],None
+    ],
+    [   r"(LEG_EST [0-9]{8})",
+        ["Tu número de legajo es{}. Pon la palabra INICIO para volver al menú principal"],
+        get_legajo_estudiante
+    ],
+    [   r"(LEG_DOC [0-9]{8})",
+        ["Tu número de legajo es {}. Pon la palabra INICIO para volver al menú principal"],
+        get_legajo_docente
+    ],
 
 
 
+]
 mis_reflexions = {
     "ir": "fui",
     "hola": "hey",
@@ -157,13 +219,15 @@ mis_reflexions = {
     "dni":"documento",
     "asistencia":"asistencias",
     "carrera":"carreras",
-    "materia":"materias"
-    
+    "materia":"materias",
+    "datos de docente":"datos de docentes",
+    "datos de docente":"datos docente",
+    "datos de docente":"datos docentes"
 }
 
 def chatear():
-    print("Hola soy un bot, eres estudiante, docente o particular?")
-    chat = MyChat(pares_docentes, mis_reflexions)
+    print("Hola soy un bot, eres estudiante, docente o invitado?")
+    chat = MyChat(pares, mis_reflexions)
     chat.converse()
 
 # Indica que el incio del programa llama a la función chatear
