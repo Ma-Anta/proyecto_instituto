@@ -1,6 +1,8 @@
 # pylint: disable=import-error
+import os
 import bbdd.bbdd as base
 import clases.clases as clase
+import getpass as gp
 
 def manejoMenu(p_menu):
     print("\n")
@@ -21,7 +23,7 @@ def busquedaCarrera(p_id_carrera = None):
         dictCarreras[carrera_a_agregar.id] = carrera_a_agregar
     return dictCarreras
 
-def busquedaDocente(p_legajo_docente = None):
+def busquedaDocente(p_legajo_docente = None,p_id_materia = None):
     dictDocentes = {}
     if p_legajo_docente == None:
         consulta = "SELECT * FROM DOCENTE"
@@ -32,3 +34,33 @@ def busquedaDocente(p_legajo_docente = None):
         docentes_a_ingresar = clase.Docente(docente[1],docente[2],docente[3],docente[0],docente[4],docente[5],docente[6])
         dictDocentes[docentes_a_ingresar.legajo] = docentes_a_ingresar
     return dictDocentes
+
+def sesionUsuario(p_usuario,p_tipo):
+    sesion = {}
+    sesion["nombre_usuario"] = p_usuario
+    sesion["tipo_usuario"] = p_tipo
+    consulta = "SELECT * FROM {tabla} WHERE {condicion} = '{user}'"
+    if p_tipo == 'estudiante':
+        consulta = consulta.format(tabla = "ESTUDIANTE",condicion = "estudiante.usuario",user=p_usuario)
+        res_cons = base.bbdd.ejecutar(consulta)[0]
+        usuario = clase.Estudiante(res_cons[0],res_cons[1],res_cons[2],res_cons[3],res_cons[4],res_cons[5],res_cons[6])
+    if p_tipo == "docente":
+        consulta = consulta.format(tabla = "DOCENTE",condicion = "docente.usuario",user=p_usuario)
+        res_cons = base.bbdd.ejecutar(consulta)[0]
+        usuario = clase.Docente(res_cons[0],res_cons[1],res_cons[2],res_cons[3],res_cons[4],res_cons[5],res_cons[6])
+    sesion["Datos"] = usuario
+    return sesion
+
+def iniciarSesion(p_usuario):
+    os.system("cls")
+    resultado_consulta = base.bbdd.procedimiento("obtenerCredencial",[p_usuario])[0]
+    contrasenia = resultado_consulta[1]
+    tipo_usuario = resultado_consulta[0]
+    if contrasenia == "Usuario invalido":
+        return contrasenia,None
+    else:
+        passwordIngresada = gp.getpass("Ingrese contraseña: ")
+        if contrasenia == passwordIngresada:
+            return True,tipo_usuario
+        else:
+            return 'Contraseña invalida',tipo_usuario
