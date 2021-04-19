@@ -3,66 +3,79 @@ import bbdd.bbdd as base
 import tkinter as tk
 
 class Programa():
-    
     conect = base.bbdd
-
-    menuIngreso = {"1": "Usuarios","2":"Invitados","3":"Salir"}
-    menuUsuario = {"1": "Docentes","2": "Estudiantes", "4":"Menu Inicial"}
-    menuInvitado = {"1": "Carreras","2": "Materias","3": "Menu Inicial"}
-    menuDocente = {"1":"Carreras","2":"Materias","3":"Estudiantes","4":"Menu Inicial"}
-    menuEstudiante = {"1":"Carreras","2":"Materias","3":"Docentes","4":"Menu Inicial"}
+    def __init__(self,p_sesion,p_exit):
+        self._exit = p_exit
+        self._sesion = p_sesion
     
-    def __init__(self,p_menu = None,p_sesion=None):
-        self._menu = p_menu
-        self._sesion = None
-
-    def getAcceso(self,p_usuario):
-        credencial = self.conect.procedimiento("obtenerCredencial",[p_usuario])[0][0]
-        if credencial == "Usuario invalido":
-            return credencial
-        else:
-            contrasena = input("Ingrese contraseña: ")
-            if contrasena == credencial:
-                return True
-            else:
-                return False
-
-    def setSesion(self,p_usuario,p_perfil):
-        consulta = "SELECT legajo,apellido_nombre from docente where docente.usuario like '"+p_usuario+"'"
-        datos = self.conect.ejecutar(consulta)[0]
-        sesion = {"legajo":datos[0],"apellido_nombre":datos[1],"permiso":p_perfil}
-        return sesion
-    
-    def manejoMenu(self,p_menu):
-        for opcion in p_menu:
-            print(opcion," - ",p_menu[opcion])
-        opcion = input("\nElija una opción: ")
+    def manejoMenu(self):
+        print("\n")
+        for item in self._menu:
+            print(item," - ",self._menu[item])
+        opcion = input("\nIngrese una opcion: ")
         return opcion
-
-
-
-
-
-
-"""
-if __name__ == "__main__":
-    opcion = 0
-    programa = Programa()
-    opcion = programa.manejoMenu()
-    if opcion == "1":
-        usuario = input("\nIngrese su usuario: ")
-        ingreso = programa.getAcceso(usuario)
-        if ingreso == "Usuario invalido":
-            print(ingreso)
-        elif ingreso == True:
-            programa.sesion = programa.getSesion(usuario,opcion)
-            print("\nBienvenido",programa.sesion["apellido_nombre"],"\n")
+    
+    def _ejecucion(self):
+        while self._exit != True:
+            opcion = self.manejoMenu()
+            if opcion in ["Salir","Cerrar sesion","Volver"]:
+                self._exit = True
+    
+    def _infoCarrera(self):
+        menuCarreras = {"1":"Listar todas","2":"Buscar y listar","3":"Volver"}
+        dictCarreras = {}
+        exit = False
+        while exit != True:
+            print("\nMENU INFO CARRRERAS\n")
+            opcion = fc.manejoMenu(menuCarreras)
             if opcion == "1":
-                programa.menu = programa.menuDocente()
-                opcion = programa.manejoMenu()
+                dictCarreras = fc.busquedaCarrera()
+                fc.limpiarPantalla()
+                for item in dictCarreras:
+                    dictCarreras[item].imprimeObjeto(False)
             if opcion == "2":
-                programa.menu = programa.menuEstudiantes()
-                opcion = programa.manejoMenu()
-        else:
-            print("Contraseña invalida")
-"""
+                idCarrera = int(input("\nInserte el id de la carrera buscada: "))
+                if idCarrera in dictCarreras.keys():
+                    fc.limpiarPantalla()
+                    dictCarreras[idCarrera].imprimeObjeto(True)
+                else:
+                    fc.limpiarPantalla()
+                    dictCarreras = fc.busquedaCarrera(idCarrera)
+                    dictCarreras[idCarrera].imprimeObjeto(True)
+            if opcion == "3":
+                exit = True
+
+    def _infoMateria(self):
+    menuMaterias = {"1":"Listar todas","2":"Buscar y listar","3":"Volver"}
+    dictMaterias = {}
+    exit = False
+    while exit != True:
+        print("\nMENU INFO MATERIAS\n")
+        opcion = fc.manejoMenu(menuMaterias)
+        if opcion == "1":
+            dictMaterias = fc.busquedaMateria()
+            fc.limpiarPantalla()
+            for item in dictMaterias:
+                dictMaterias[item].imprimeObjeto(False)
+        if opcion == "2":
+            idMateria = int(input("\nInserte el id de la carrera buscada: "))
+            if idMateria in dictMaterias.keys():
+                fc.limpiarPantalla()
+                dictMaterias[idMateria].imprimeObjeto(True)
+            else:
+                fc.limpiarPantalla()
+                dictMaterias = fc.busquedaMateria(idMateria)
+                dictMaterias[idMateria].imprimeObjeto(True)
+        if opcion == "3":
+            exit = True
+
+class interfazDocente(Programa):
+    _menu = {"2":"Información Carreras","3":"Información Materias","4":"Información Estudiantes","5":"Información Docentes","6":"Cerrar sesión"}
+    def __init__(self,p_sesion,p_exit):
+        super().__init__(p_sesion,p_exit)
+
+
+
+
+interfaz = interfazDocente(None,False)
+interfaz._ejecucion()

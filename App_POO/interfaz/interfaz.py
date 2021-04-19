@@ -1,99 +1,97 @@
 # pylint: disable=import-error
-import os
 import interfaz.funciones as fc
 
-menuCarreras = {"1":"Listar todas","2":"Buscar y listar","3":"Salir"}
-
 def interfazEstudiante(p_sesion):
-    menuEstudiante = {"1":"Carrera","2":"Materias","3":"Docentes","4":"Salir"}
+    menuEstudiante = {"1":"Mis Datos","2":"Información Materias","3":"Información Docentes","4":"Cerrar sesión"}
     exit = False
     while exit != True:
         print("\nMENU ESTUDIANTES\n")
         opcion = fc.manejoMenu(menuEstudiante)
         if opcion == "1":
-            os.system("cls")
-            interfazCarrera(p_sesion)
+            fc.limpiarPantalla()
+            MisDatos(p_sesion)
         if opcion == "2":
-            os.system("cls")
-            interfazMateria(p_sesion)
+            fc.limpiarPantalla()
+            infoMateria()
         if opcion == "3":
-            os.system("cls")
-            interfazVerDocentes(p_sesion)
+            fc.limpiarPantalla()
+            interfazVerDocentes()
         elif opcion == "4":
             exit = True
 
 def interfazDocente(p_sesion):
-    menuDocentes = {"1":"Carreras","2":"Materias","3":"Estudiantes","4":"Salir"}
+    menuDocentes = {"1":"Mis datos","2":"Información Carreras","3":"Información Materias","4":"Información Estudiantes","5":"Información Docentes","6":"Cerrar sesión"}
     exit = False
     while exit != True:
         print("\nMENU DOCENTES\n")
         opcion = fc.manejoMenu(menuDocentes)
         if opcion == "1":
-            os.system("cls")
-            interfazCarrera(p_sesion)
-        elif opcion == "2":
-            os.system("cls")
-            interfazMateria(p_sesion)
+            fc.limpiarPantalla()
+            MisDatos(p_sesion)
+        if opcion == "2":
+            fc.limpiarPantalla()
+            infoCarrera()
         elif opcion == "3":
-            pass
+            fc.limpiarPantalla()
+            infoMateria()
         elif opcion == "4":
+            pass
+        elif opcion == "5":
+            fc.limpiarPantalla()
+            interfazVerDocentes()
+        elif opcion == "6":
             exit = True
 
-def interfazCarrera(p_sesion):
+def infoCarrera():
+    menuCarreras = {"1":"Listar todas","2":"Buscar y listar","3":"Volver"}
     dictCarreras = {}
     exit = False
     while exit != True:
-        print("\nMENU CARRRERAS\n")
+        print("\nMENU INFO CARRRERAS\n")
         opcion = fc.manejoMenu(menuCarreras)
         if opcion == "1":
             dictCarreras = fc.busquedaCarrera()
-            os.system("cls")
+            fc.limpiarPantalla()
             for item in dictCarreras:
                 dictCarreras[item].imprimeObjeto(False)
         if opcion == "2":
             idCarrera = int(input("\nInserte el id de la carrera buscada: "))
             if idCarrera in dictCarreras.keys():
-                os.system("cls")
+                fc.limpiarPantalla()
                 dictCarreras[idCarrera].imprimeObjeto(True)
             else:
-                os.system("cls")
+                fc.limpiarPantalla()
                 dictCarreras = fc.busquedaCarrera(idCarrera)
                 dictCarreras[idCarrera].imprimeObjeto(True)
         if opcion == "3":
             exit = True
 
-def interfazMateria(p_sesion):
-    menuMateriaD = {"1":"Docentes asignados","2":"Alumnos inscriptos","3":"Info materia","4":"Salir"}
-    menuMateriaE = {"1":"Docentes asignados","2":"Mis notas","3":"Mis asistencias","4":"Salir"}
-    existe = False
-    while existe != True:
-        print("\nMENU MATERIA")
-        if p_sesion["tipo_usuario"] == "docente":
-            opcion = fc.manejoMenu(menuMateriaD)
-            if opcion == "1":
-                pass
-            elif opcion == "2":
-                pass
-        if p_sesion["tipo_usuario"] == "estudiante":
-            opcion = fc.manejoMenu(menuMateriaE)
-            estudiante = p_sesion["Datos"]
-            estudiante._materias = estudiante._getMaterias()
-            if opcion == "1":
-                pass
-            elif opcion == "2":
-                anio = int(input("Ingrese el año de cursada: "))
-                for materia in estudiante._materias:
-                    print("\nNotas para la materia: {}".format(estudiante._materias[materia].nombre))
-                    lista_notas = estudiante._conect.procedimiento("proy_inst_f_notas_estudiantes",[estudiante._materias[materia].id,estudiante.legajo,anio])
-                    if lista_notas == []:
-                        print("\nNo se encuentran notas para la materia en el año: {}".format(anio))
-                    else:
-                        for nota in lista_notas:
-                            print("\nFecha: {}\nNota: {}\nTipo de examen: {}".format(nota[0],nota[1],nota[2]))
-                        
+def infoMateria():
+    menuMaterias = {"1":"Listar todas","2":"Buscar y listar","3":"Volver"}
+    dictMaterias = {}
+    exit = False
+    while exit != True:
+        print("\nMENU INFO MATERIAS\n")
+        opcion = fc.manejoMenu(menuMaterias)
+        if opcion == "1":
+            dictMaterias = fc.busquedaMateria()
+            fc.limpiarPantalla()
+            for item in dictMaterias:
+                dictMaterias[item].imprimeObjeto(False)
+        if opcion == "2":
+            idMateria = int(input("\nInserte el id de la carrera buscada: "))
+            if idMateria in dictMaterias.keys():
+                fc.limpiarPantalla()
+                dictMaterias[idMateria].imprimeObjeto(True)
+            else:
+                fc.limpiarPantalla()
+                dictMaterias = fc.busquedaMateria(idMateria)
+                dictMaterias[idMateria].imprimeObjeto(True)
+        if opcion == "3":
+            exit = True
 
-def interfazVerDocentes(p_sesion):
-    menuVerDocente = {"1":"Todos los docentes","2":"Docentes por materia","3":"Docente por ID","4":"Salir"}
+def interfazVerDocentes():
+    menuVerDocente = {"1":"Todos los docentes","2":"Docentes por materia","3":"Docente por ID","4":"Volver"}
     dictDocentes = {}
     exit = False
     while exit != True:
@@ -108,4 +106,64 @@ def interfazVerDocentes(p_sesion):
         if opcion == "3":
             pass
         if opcion == "4":
+            exit = True
+
+def MisDatos(p_sesion):
+    usuario = p_sesion["Datos"]
+    encabezado = "Legajo: {}\nNombre: {}".format(usuario.legajo,usuario.nombre)
+    fc.limpiarPantalla()    
+    print("-----------\n"+encabezado+"\n-----------\n")
+    if p_sesion["tipo_usuario"] == "estudiante":
+        misDatosEst(usuario)
+    if p_sesion["tipo_usuario"] == "docente":
+        misDatosDoc(usuario)
+
+def misDatosEst(p_usuario):
+    menu = {"1":"Notas","2":"Asistencias","3":"Volver"}
+    exit = False
+    p_usuario._materias = p_usuario._getMaterias()
+    while exit != True:
+        print("\nMIS DATOS\n")
+        opcion = fc.manejoMenu(menu)
+        if opcion == "1":
+            fc.limpiarPantalla()
+            print("\nNOTAS")
+            menuNotas = {"1":"Por materia","2":"Por año"}
+            opcion = fc.manejoMenu(menuNotas)
+            if opcion == "1":
+                print("\nMaterias disponibles:\n")
+                for materia in p_usuario._materias:
+                    print("\nID: {}\nMateria: {}".format(p_usuario._materias[materia].id,p_usuario._materias[materia].nombre))
+                materia = int(input("\nInserte el id de la materia: "))
+                lista_notas = p_usuario._getNotaMateria(p_materia_id = materia)
+                fc.printNotasEstudiantes(lista_notas)
+            if opcion == "2":
+                anio = int(input("\nIngrese el año: "))
+                lista_notas = p_usuario._getNotaMateria(p_anio = anio)
+                fc.printNotasEstudiantes(lista_notas)
+        elif opcion == "2":
+            fc.limpiarPantalla()
+            print("\nASISTENCIAS\n")
+            menuAsistencia = {"1":"Porcentaje por materia","2": "Porcentaje por año","3":"Fecha"}
+            opcion = fc.manejoMenu(menuAsistencia)
+            if opcion == "1":
+                print("\nMaterias disponibles:\n")
+                for materia in p_usuario._materias:
+                    print("\nID: {}\nMateria: {}".format(p_usuario._materias[materia].id,p_usuario._materias[materia].nombre))
+                materia = int(input("\nInserte el id de la materia: "))
+                porc_asistencia = p_usuario._porcentajeAsistencia(p_materia_id = materia)
+                print("Porcentaje de asistencia = {}%".format(porc_asistencia))
+            elif opcion == "2":
+                anio = int(input("\nInserte el año: "))
+                porc_asistencia = p_usuario._porcentajeAsistencia(p_anio = anio)
+                print("Porcentaje de asistencia = {}%".format(porc_asistencia))
+            elif opcion == "3":
+                fecha = input("\nInserte fecha: (Formato requerido: YYYY-MM-DD) ")
+                consulta = "select ae.fecha, ae.asistencia from asistencia_estudiantes ae where estudiante_legajo = {} and fecha = '{}';".format(p_usuario.legajo,fecha)
+                asistencia = p_usuario._conect.ejecutar(consulta)[0][1]
+                if asistencia == True:
+                    print("Presente")
+                else:
+                    print("Ausente")
+        elif opcion == "3":
             exit = True
