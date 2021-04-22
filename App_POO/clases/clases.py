@@ -21,13 +21,14 @@ class Persona():
         return lista_materias
 
 class Docente(Persona):
-    def __init__ (self,p_dni,p_nombre,p_email,p_legajo,p_domicilio,p_telefono,p_fechaNac):
+    def __init__ (self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
         self.legajo=p_legajo
-        self.materias = []
+        self.materias = {}
 
     def getMaterias(self,p_anio = None):
-        self.lista_materias = super().materias("materias_por_docente",self.legajo,p_anio)
+        materias = super().materias(self.legajo,"materias_por_docente",p_anio)
+        return materias
 
 class Estudiante(Persona):
 
