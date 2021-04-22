@@ -24,6 +24,9 @@ if __name__ == "__main__":
                     app.interfazEstudiante(sesion)
             else:
                 print(inicio," \nInicio de sesion fallido\n")
+        elif opcion == "2":
+            fc.limpiarPantalla()
+            app.interfazInvitado()
         elif opcion == "3":
             exit = True
             print("\nHasta las vista, Baby")

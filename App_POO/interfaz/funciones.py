@@ -36,17 +36,23 @@ def busquedaMateria(p_id_materia = None):
         dictMaterias[materia_a_agregar.id] = materia_a_agregar
     return dictMaterias
 
-def busquedaDocente(p_legajo_docente = None,p_id_materia = None):
-    dictDocentes = {}
-    if p_legajo_docente == None:
-        consulta = "SELECT * FROM DOCENTE"
-    else:
-        consulta = "SELECT * FROM DOCENTE WHERE docente.legajo = {}".format(p_legajo_docente)
-    docentes = base.bbdd.ejecutar(consulta)
-    for docente in docentes:
-        docentes_a_ingresar = clase.Docente(docente[1],docente[2],docente[3],docente[0],docente[4],docente[5],docente[6])
-        dictDocentes[docentes_a_ingresar.legajo] = docentes_a_ingresar
-    return dictDocentes
+def busquedaPersona(p_tipo,p_legajo_docente = None):
+    dictPersona = {}
+    consulta = "SELECT * FROM {}".format(p_tipo)
+    if p_legajo_docente != None:
+        consulta = consulta+" WHERE {}.legajo = {}".format(p_tipo,p_legajo_docente)
+    personas = base.bbdd.ejecutar(consulta)
+    for persona in personas:
+        if p_tipo == "docente":
+            persona_a_ingresar = clase.Docente(persona[0],persona[1],persona[2],persona[3],persona[4],persona[5],persona[6])
+        else:
+            persona_a_ingresar = clase.Estudiante(persona[0],persona[1],persona[2],persona[3],persona[4],persona[5],persona[6])
+        dictPersona[persona_a_ingresar.legajo] = persona_a_ingresar
+    return dictPersona
+
+def imprimirPersona(p_diccionario):
+    for persona in p_diccionario:
+        print("\nNombre: {}\nEmail: {}".format(p_diccionario[persona].nombre,p_diccionario[persona].email))
 
 def printNotasEstudiantes(p_lista_notas):
     for materia in p_lista_notas:

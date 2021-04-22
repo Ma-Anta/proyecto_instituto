@@ -1,16 +1,22 @@
 # pylint: disable=import-error
-
+import re
 import bbdd.bbdd as base
 
 class Persona():
     
     _conect = base.bbdd
-    
+    _validaMail = re.compile(r"""\b[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,6}\b""")
+    _validaFecha = re.compile(r"""[[0-9]{4}-[1-9]{2}-[1-9]{2}""")
+    _ValidaDNI = re.compile(r"""[0-9]{8}""")
+
+
     def __init__ (self,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
-        self.dni = p_dni
-        self.nombre = p_nombre
-        self.email = p_email
-        self.fechaNac = p_fechaNac
+        self._dni = p_dni
+        self._nombre = p_nombre
+        self._email = p_email
+        self._domicilio = p_domicilio
+        self._telefono = p_telefono
+        self._fechaNac = p_fechaNac
 
     def materias(self,p_legajo,p_procedimiento,p_anio_cursada = None):
         lista_materias = {}
@@ -19,14 +25,58 @@ class Persona():
             materia_a_insertar = Materia(materia[0],materia[1],materia[2])
             lista_materias[materia_a_insertar.id] = materia_a_insertar
         return lista_materias
+    
+    def _muestraDatos(self):
+        print("\nMis datos: ")
+        print("\nDNI: {}\nNombre: {}\nEmail: {}\nDomicilio: {}\nTelefono: {}\nFecha de nacimiento: {}".format(self._dni,self._nombre,self._email,self._domicilio,self._telefono,self._fechaNac))
+
+    def _modificaDatos(self,p_tipo):
+        dato = (input("\n¿Que dato desea modificar? ")).lower()
+        exit = False
+        while exit != True:
+            if dato == "dni":
+                dni = input("\nIngrese DNI sin puntos ni comas: ")
+                if self._ValidaDNI.match(dni):
+                    dni = int(dni)
+                    self._dni = dni
+                else:
+                    print("\nDNI incorrecto, ingrese solo numeros.")
+            elif "nombre" in dato:
+                name = input("\nIngrese nuevo apellido y nombre: ")
+                self._nombre = nombre
+            elif dato == "email":
+                email = input("\nIngrese email nuevo: ")
+                if self._validaMail.match(email):
+                    self._email = email
+                else:
+                    print("\nEmail invalido.")
+            elif dato == "domicilio":
+                domicilio = input("\nIngrese nuevo domicilio: ")
+                self._domicilio = domicilio
+            elif dato == "telefono":
+                telefono = input("\nIngrese nuevo numero de telefono (solo numeros): ")
+                try:
+                    telefono = int(telefono)
+                    self._telefono = telefono
+                except:
+                    print("\nNumero de telefono no valido.")
+            elif "nacimiento" in dato:
+                fecha = input("Ingrese nueva fecha de nacimiento (formato: yyyy-MM-dd): ")
+                if self._validaFecha.macth(fecha):
+                    self._fechaNac = fecha
+                else:
+                    print("\nFecha invalida.")
+            seguir = input("\n¿Desea modificar otro dato? (s/n)")
+            elif seguir == "n":
+                exit = True
 
 class Docente(Persona):
     def __init__ (self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
-        self.legajo=p_legajo
+        self._legajo=p_legajo
         self.materias = {}
 
-    def getMaterias(self,p_anio = None):
+    def _getMaterias(self,p_anio = None):
         materias = super().materias(self.legajo,"materias_por_docente",p_anio)
         return materias
 
@@ -34,22 +84,22 @@ class Estudiante(Persona):
 
     def __init__(self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
-        self.legajo=p_legajo
+        self._legajo=p_legajo
         self._materias = {}
         self._carreras = []
     
     def _promedio (self,p_anio_cursada):
-        consulta = super()._conect.procedimiento("promedio",[self.legajo,p_anio_cursada])
+        consulta = super()._conect.procedimiento("promedio",[self._legajo,p_anio_cursada])
         promedio = consulta[0][0]
         return promedio
     
     def _getMaterias(self):
-        materias = super().materias(self.legajo,"materias_por_estudiante",None)
+        materias = super().materias(self._legajo,"materias_por_estudiante",None)
         return materias
     
     def _getNotaMateria(self,p_materia_id = None,p_anio = None):
         listado_notas = {}
-        lista_notas = self._conect.procedimiento("proy_inst_f_notas_estudiantes",[p_materia_id,self.legajo,p_anio])
+        lista_notas = self._conect.procedimiento("proy_inst_f_notas_estudiantes",[p_materia_id,self._legajo,p_anio])
         for materia in lista_notas:
             listado_notas[materia[0]] = []
         for materia in lista_notas:
@@ -57,7 +107,7 @@ class Estudiante(Persona):
         return listado_notas
     
     def _getAsistencia(self,p_materia_id,p_anio):
-        consulta = "select ae.materia_id,ae.fecha,ae.asistencia from asistencia_estudiantes ae where ae.estudiante_legajo = {}".format(self.legajo)
+        consulta = "select ae.materia_id,ae.fecha,ae.asistencia from asistencia_estudiantes ae where ae.estudiante_legajo = {}".format(self._legajo)
         if p_materia_id != None:
             consulta = consulta + " and materia_id = {}".format(p_materia_id)
         elif p_anio != None:
@@ -117,9 +167,9 @@ class Carrera():
         self.nombre = p_nombre
         self.titulo = p_titulo
         self.nivel = p_nivel
-        self.materias = self.getMaterias()
+        self.materias = self._getMaterias()
 
-    def getMaterias(self):
+    def _getMaterias(self):
         lista_materias = {}
         consulta = self.conect.procedimiento("materias_por_carrera",[self.id])
         for materia in consulta:
@@ -127,7 +177,7 @@ class Carrera():
             lista_materias[materia_a_insertar.id] = materia_a_insertar
         return lista_materias
     
-    def getHorasTotales(self):
+    def _getHorasTotales(self):
         horas_totales = 0
         for materia in self.materias:
             horas_totales = horas_totales + self.materias[materia].horas_totales
@@ -135,7 +185,7 @@ class Carrera():
     
     def imprimeObjeto(self,p_imprimeMateria):
         print("\nInformacion de Carrera: "+self.nombre)
-        print("\nID: {}\nTitulo: {}\nNivel: {}\nHoras totales: {}".format(self.id,self.titulo,self.nivel,self.getHorasTotales()))
+        print("\nID: {}\nTitulo: {}\nNivel: {}\nHoras totales: {}".format(self.id,self.titulo,self.nivel,self._getHorasTotales()))
         if p_imprimeMateria:
             print("\nMaterias\n")
             for materia in self.materias:
