@@ -135,6 +135,35 @@ def get_legajo_docente(match,p_dni):
     consulta = base.bbdd.procedimiento("proy_inst_f_obtener_legajo_docentes",[p_dni])[0][0]
     return consulta
 
+def get_matriculas_estudiantes(matc,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_matriculaciones_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Carrera: " +dato[0] +' - Materia: '+ dato[1]+' - Anio: '+ str(dato[2])+"\n"
+    return retorno
+
+def get_notas_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_notas_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "Materia: "+dato[0] + '- Tipo de examen: '+dato[1] +'- Fecha: '+ str(dato[2]) +'- Nota: '+str(dato[3])+"\n"
+    return retorno
+
+def get_inasistencia_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_false_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "- Materia: "+dato[1]+ "- Fecha: "+str(dato[2])+"- Asistencia: "+dato[3]+"\n"
+    return retorno
+
+def get_asistencia_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_true_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "- Materia: "+dato[1]+ "- Fecha: "+str(dato[2])+"- Asistencia: "+dato[3]+"\n"
+    return retorno
+
+
 pares = [
     [   r"INICIO",
     ["Hola soy un bot, eres estudiante, docente o invitado?"],None
@@ -187,10 +216,10 @@ pares = [
     ],
     
     [   r"(.*)estudiante|estudiante(.*)|(.*)estudiante(.*)|estudiante",
-        ["Ingrese la letra 'DNI'+ espacio, seguido de su número de dni"],None
+        ["Ingrese 'DNI'+ espacio, seguido de su número de dni"],None
     ],
     [   r"(DNI [0-9]{8})",
-        ["Hola {}. Si desea saber        \nACERCA DE                INGRESE        \nmaterias                 MATERIA        \ncarreras                 CARRERA        \ndatos de docentes        DDOC        \ndatos de estudiantes     DEST"],
+        ["Hola {}. \nSi desea saber\nACERCA DE                  INGRESE\nInformación general	   M + espacio + nombre de la materia\nmatriculación		   MMAT + espacio + Nro de legajo\nnotas			   MNOT + espacio + Nro de legajo\nasistencia		   MASISV + espacio + Nro de legajo\ninasistencia		   MASISF + espacio + Nro de legajo"],
         get_nomape_estudiante
     ],
     [   r"legajo|(.*)legajo|legajo(.*)|(.*)legajo(.*)",
@@ -204,6 +233,23 @@ pares = [
         ["Tu número de legajo es {}. Pon la palabra INICIO para volver al menú principal"],
         get_legajo_docente
     ],
+    [   r"(MMAT [0-9]{1,2})",
+        ["{}"],
+        get_matriculas_estudiantes
+    ],
+    [   r"(MNOT [0-9]{1,2})",
+        ["{}"],
+        get_notas_estudiantes
+    ],
+    [   r"(MASISF [0-9]{1,2})",
+        ["{}"],
+        get_inasistencia_estudiantes
+    ],
+    [   r"(MASISV [0-9]{1,2})",
+        ["{}"],
+        get_asistencia_estudiantes
+    ],
+
 
 
 
