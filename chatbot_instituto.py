@@ -149,18 +149,33 @@ def get_notas_estudiantes(match,p_legajo):
         retorno = retorno + "Materia: "+dato[0] + '- Tipo de examen: '+dato[1] +'- Fecha: '+ str(dato[2]) +'- Nota: '+str(dato[3])+"\n"
     return retorno
 
+def get_notas_aprobadas_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_notas_aprobadas_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "Materia: "+dato[0] + '- Tipo de examen: '+dato[1] +'- Fecha: '+ str(dato[2]) +'- Nota: '+str(dato[3])+"\n"
+    return retorno
+
+def get_notas_desaprobadas_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_notas_desaprobadas_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "Materia: "+dato[0] + '- Tipo de examen: '+dato[1] +'- Fecha: '+ str(dato[2]) +'- Nota: '+str(dato[3])+"\n"
+    return retorno
+
 def get_inasistencia_estudiantes(match,p_legajo):
     consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_false_estudiantes",[p_legajo])
     retorno = ''
     for dato in consulta:
-        retorno = retorno + "- Materia: "+dato[1]+ "- Fecha: "+str(dato[2])+"- Asistencia: "+dato[3]+"\n"
+        retorno = retorno + "- Materia: "+dato[0]+ "- Fecha: "+str(dato[1])+"\n"
+        
     return retorno
 
 def get_asistencia_estudiantes(match,p_legajo):
     consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_true_estudiantes",[p_legajo])
     retorno = ''
     for dato in consulta:
-        retorno = retorno + "- Materia: "+dato[1]+ "- Fecha: "+str(dato[2])+"- Asistencia: "+dato[3]+"\n"
+        retorno = retorno + "- Materia: "+dato[0]+ "- Fecha: "+str(dato[1])+"\n"
     return retorno
 
 
@@ -219,7 +234,7 @@ pares = [
         ["Ingrese 'DNI'+ espacio, seguido de su número de dni"],None
     ],
     [   r"(DNI [0-9]{8})",
-        ["Hola {}. \nSi desea saber\nACERCA DE                  INGRESE\nInformación general	   M + espacio + nombre de la materia\nmatriculación		   MMAT + espacio + Nro de legajo\nnotas			   MNOT + espacio + Nro de legajo\nasistencia		   MASISV + espacio + Nro de legajo\ninasistencia		   MASISF + espacio + Nro de legajo"],
+        ["Hola {}.\nSi desea saber\nACERCA DE                INGRESE\nInformación general	   INFO\nmatriculación		   MATRICULACION\nnotas			   NOTAS\nasistencia		   ASISTENCIAS"],
         get_nomape_estudiante
     ],
     [   r"legajo|(.*)legajo|legajo(.*)|(.*)legajo(.*)",
@@ -233,13 +248,27 @@ pares = [
         ["Tu número de legajo es {}. Pon la palabra INICIO para volver al menú principal"],
         get_legajo_docente
     ],
+    [   r"MATRICULACION",
+        ["Ingrese MMAT + espacio + Nro de legajo"],None
+    ],
     [   r"(MMAT [0-9]{1,2})",
         ["{}"],
         get_matriculas_estudiantes
     ],
+    [   r"NOTAS",
+        ["Si desea saber        \nACERCA DE                INGRESE        \nnotas aprobadas	       VMNOT + espacio + Nro de legajo        \nnotas desaprobadas	   FMNOT + espacio + Nro de legajo        \ntodas las notas	       MNOT + espacio + Nro de legajo"],None
+    ],
     [   r"(MNOT [0-9]{1,2})",
         ["{}"],
         get_notas_estudiantes
+    ],
+        [r"(VMNOT [0-9]{1,2})",
+        ["{}"],
+        get_notas_aprobadas_estudiantes
+    ],
+        [r"(FMNOT [0-9]{1,2})",
+        ["{}"],
+        get_notas_desaprobadas_estudiantes
     ],
     [   r"(MASISF [0-9]{1,2})",
         ["{}"],
