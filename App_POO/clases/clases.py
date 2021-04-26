@@ -1,14 +1,14 @@
 # pylint: disable=import-error
 import re
 import bbdd.bbdd as base
+from abc import ABC,abstractmethod
 
 class Persona():
     
     _conect = base.bbdd
     _validaMail = re.compile(r"""\b[\w.%+-]+@[\w.-]+\.[a-zA-Z]{2,6}\b""")
-    _validaFecha = re.compile(r"""[[0-9]{4}-[1-9]{2}-[1-9]{2}""")
+    _validaFecha = re.compile(r"""[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}""")
     _ValidaDNI = re.compile(r"""[0-9]{8}""")
-
 
     def __init__ (self,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         self._dni = p_dni
@@ -26,10 +26,14 @@ class Persona():
             lista_materias[materia_a_insertar.id] = materia_a_insertar
         return lista_materias
     
-    def _muestraDatos(self):
-        print("\nMis datos: ")
-        print("\nDNI: {}\nNombre: {}\nEmail: {}\nDomicilio: {}\nTelefono: {}\nFecha de nacimiento: {}".format(self._dni,self._nombre,self._email,self._domicilio,self._telefono,self._fechaNac))
-
+    def _muestraDatos(self,p_todos):
+        if p_todos:
+            print("\nMis datos: ")
+            print("\nDNI: {}\nNombre: {}\nEmail: {}\nDomicilio: {}\nTelefono: {}\nFecha de nacimiento: {}".format(self._dni,self._nombre,self._email,self._domicilio,self._telefono,self._fechaNac))
+        else:
+            print("\nDATOS: ")
+            print("\nNombre: {}\nEmail: {}\nTelefono: {}".format(self._nombre,self._email,self._telefono))
+    
     def _modificaDatos(self,p_tipo):
         dato = (input("\n¿Que dato desea modificar? ")).lower()
         exit = False
@@ -43,7 +47,7 @@ class Persona():
                     print("\nDNI incorrecto, ingrese solo numeros.")
             elif "nombre" in dato:
                 name = input("\nIngrese nuevo apellido y nombre: ")
-                self._nombre = nombre
+                self._nombre = name
             elif dato == "email":
                 email = input("\nIngrese email nuevo: ")
                 if self._validaMail.match(email):
@@ -67,26 +71,54 @@ class Persona():
                 else:
                     print("\nFecha invalida.")
             seguir = input("\n¿Desea modificar otro dato? (s/n)")
-            elif seguir == "n":
+            if seguir == "n":
                 exit = True
+
+    def _cambiaContraseña(self,p_tipo):
+        pass
+
+class Preceptor(Persona):
+    def __init__ (self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
+        super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
+        self._legajo=p_legajo
+
+    def _insertaAsistencia(self,p_datos):
+        pass
+
+    def _insertaNotas(self,p_datos):
+        pass
+
+    def _crearUsuario(self,p_datos):
+        pass
+
+    def _insertaDocenteEstudiante(self,p_tipo,p_datos):
+        pass
+
+    def _insertaCarrera_Materia(self,p_tipo,p_datos):
+        pass
 
 class Docente(Persona):
     def __init__ (self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
         self._legajo=p_legajo
-        self.materias = {}
+        self._materias = self._getMaterias()
 
     def _getMaterias(self,p_anio = None):
-        materias = super().materias(self.legajo,"materias_por_docente",p_anio)
+        materias = super().materias(self._legajo,"materias_por_docente",p_anio)
         return materias
+
+    def _muestraMaterias(self,p_verDoc):
+        print("\nMIS MATERIAS\n")
+        for materia in self._materias:
+            self._materias[materia]._imprimeObjeto(p_verDoc)
 
 class Estudiante(Persona):
 
     def __init__(self,p_legajo,p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac):
         super().__init__(p_dni,p_nombre,p_email,p_domicilio,p_telefono,p_fechaNac)
         self._legajo=p_legajo
-        self._materias = {}
-        self._carreras = []
+        self._materias = self._getMaterias()
+        self._carreras = {}
     
     def _promedio (self,p_anio_cursada):
         consulta = super()._conect.procedimiento("promedio",[self._legajo,p_anio_cursada])
@@ -106,7 +138,7 @@ class Estudiante(Persona):
             listado_notas[materia[0]].append(materia[1::])
         return listado_notas
     
-    def _getAsistencia(self,p_materia_id,p_anio):
+    def _getAsistencia(self,p_materia_id = None,p_anio = None):
         consulta = "select ae.materia_id,ae.fecha,ae.asistencia from asistencia_estudiantes ae where ae.estudiante_legajo = {}".format(self._legajo)
         if p_materia_id != None:
             consulta = consulta + " and materia_id = {}".format(p_materia_id)
@@ -117,13 +149,20 @@ class Estudiante(Persona):
     
     def _porcentajeAsistencia(self,p_materia_id = None,p_anio = None):
         lista_asistencias = self._getAsistencia(p_materia_id,p_anio)
-        total = 0
-        presencias = 0
-        for asistencia in lista_asistencias:
-            total +=1
-            if asistencia[2] == True:
-                presencias += 1        
-        return round(((presencias*100)/total))
+        if lista_asistencias == []:
+            print("\nAlumno no encontrado en la materia\n")
+        else:
+            total = 0
+            presencias = 0
+            for asistencia in lista_asistencias:
+                total +=1
+                if asistencia[2] == True:
+                    presencias += 1        
+            return round(((presencias*100)/total))
+
+    def _muestraMaterias(self,p_verDoc):
+        for materia in self._materias:
+            self._materias[materia]._imprimeObjeto(p_verDoc)
 
 class Materia():
 
@@ -136,7 +175,7 @@ class Materia():
         self.horas_totales = p_horas_totales
         self.docentes_asignados = self._docentesAsignados()
     
-    def imprimeObjeto(self,p_verDocentes):
+    def _imprimeObjeto(self,p_verDocentes):
         print("\nInformación de materia: "+self.nombre)
         print("\nID: {}\nNombre: {}\nCiclo lectivo: {}\nHoras totales: {}".format(self.id,self.nombre,self.ciclo_lectivo,self.horas_totales))
         if p_verDocentes:
@@ -146,9 +185,9 @@ class Materia():
     
     def _alumnosInscriptos(self,p_anio = None):
         asistentes = {}
-        consulta = self.conect.procedimiento("proy_inst_f_asistenciasMateria",[self.id,p_anio])
+        consulta = self.conect.procedimiento("proy_inst_f_matriculacion_materia",[self.id,p_anio])
         for alumno in consulta:
-            asistentes[alumno[0]] = alumno[1]
+            asistentes[alumno[1]] = alumno[2]
         return asistentes
     
     def _docentesAsignados(self):
@@ -183,10 +222,14 @@ class Carrera():
             horas_totales = horas_totales + self.materias[materia].horas_totales
         return horas_totales
     
-    def imprimeObjeto(self,p_imprimeMateria):
+    def _getAlumnosinscriptos(self):
+        alumnos = {}
+        pass
+
+    def _imprimeObjeto(self,p_imprimeMateria):
         print("\nInformacion de Carrera: "+self.nombre)
         print("\nID: {}\nTitulo: {}\nNivel: {}\nHoras totales: {}".format(self.id,self.titulo,self.nivel,self._getHorasTotales()))
         if p_imprimeMateria:
             print("\nMaterias\n")
             for materia in self.materias:
-                self.materias[materia].imprimeObjeto(False)
+                self.materias[materia]._imprimeObjeto(False)
