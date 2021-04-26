@@ -81,10 +81,10 @@ class MyChat(Chat):
                 # run `callback` if exists
                 if callback: # eventually: if callable(callback):
                     var = str.split()[1]
+                    menu = "\n\n****************************************************\nSI DESEA                                   INGRESE\nIr al menú principal docente               MENU_DOC\nIr al menú principal estudiante            MENU_EST\nIr al menú principal invitado              MENU_INV\nVolver al inicio                           INICIO\nSalir                                      SALIR\n****************************************************"
                     function = callback(match,var)
-                    resp = resp.format(function)
+                    resp = resp.format(function)+menu
                 return resp
-
 
 def get_nomape_docente(match,p_legajo):
     consulta = base.bbdd.procedimiento("proy_inst_f_obtener_nomape_docente",[p_legajo])[0][0]
@@ -113,8 +113,17 @@ def get_materias_carreras(match,p_carrera):
         retorno = retorno +"Año: " +str(materia[0]) +' - Materia: '+ materia[1]+"\n"
     return retorno
 
-def get_datos_docentes(match,p_legajo):
-    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_datos_docentes",[p_legajo])
+def get_datos_docentes_por_nombre(match,p_nombre):
+    p_legajo = None
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_datos_docentes",[p_legajo,p_nombre])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Apellido y nombre: " +dato[0] +' - Email: '+ dato[1]+"\n"
+    return retorno
+
+def get_datos_docentes_por_legajo(match,p_legajo):
+    p_nombre = None
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_datos_docentes",[p_legajo,p_nombre])
     retorno = ''
     for dato in consulta:
         retorno = retorno +"Apellido y nombre: " +dato[0] +' - Email: '+ dato[1]+"\n"
@@ -163,123 +172,176 @@ def get_notas_desaprobadas_estudiantes(match,p_legajo):
         retorno = retorno + "Materia: "+dato[0] + '- Tipo de examen: '+dato[1] +'- Fecha: '+ str(dato[2]) +'- Nota: '+str(dato[3])+"\n"
     return retorno
 
-def get_inasistencia_estudiantes(match,p_legajo):
-    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_false_estudiantes",[p_legajo])
+def get_ausencia_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_ausencia_estudiantes",[p_legajo])
     retorno = ''
     for dato in consulta:
         retorno = retorno + "- Materia: "+dato[0]+ "- Fecha: "+str(dato[1])+"\n"
         
     return retorno
 
-def get_asistencia_estudiantes(match,p_legajo):
-    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_true_estudiantes",[p_legajo])
+def get_presencia_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_presencia_estudiantes",[p_legajo])
     retorno = ''
     for dato in consulta:
         retorno = retorno + "- Materia: "+dato[0]+ "- Fecha: "+str(dato[1])+"\n"
     return retorno
 
 
+def get_asistencia_estudiantes(match,p_legajo):
+    consulta = base.bbdd.procedimiento("proy_inst_f_obtener_asistencia_estudiantes",[p_legajo])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno + "- Materia: "+dato[0]+ "- Fecha: "+str(dato[1])+"- Asistencia: "+dato[2]+"\n"
+    return retorno
+
+
+def get_datos_institucionales_contacto(match,p_dato):
+    consulta = base.bbdd.procedimiento("proy_inst_f_datos_institucionales_contacto",[p_dato])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Domicilio: "+dato[0]+"- Localidad: "+dato[1]+"- Teléfonos: "+dato[2]+"- Email: "+dato[3]+"- Facebook: "+dato[4]+"\n"
+    return retorno
+
+def get_datos_institucionales(match,p_dato):
+    consulta = base.bbdd.procedimiento("proy_inst_f_datos_institucionales",[p_dato])
+    retorno = ''
+    for dato in consulta:
+        retorno = retorno +"Región: "+str(dato[0])+"- Distrito: "+str(dato[1])+"- Nombre: "+dato[2]+"- Establecimiento: "+dato[3]+"\n"
+    return retorno
+
+
 pares = [
     [   r"INICIO",
-    ["Hola soy un bot, eres estudiante, docente o invitado?"],None
+        ["Hola soy un bot, eres estudiante, docente o invitado?"],None
     ],
 
     [   r"(.*)docente|docente(.*)|(.*)docente(.*)|docente",
-        ["Ingrese la letra 'L'+ espacio, seguido de su número de legajo"],None
+        ["\nIngrese la letra 'L'+ espacio, seguido de su número de legajo"],None
     ],
     [
         r"(L [0-9]{1,2})",
-        ["Hola {}. Si desea saber        \nACERCA DE                INGRESE        \nmaterias                 MATERIA        \ncarreras                 CARRERA        \ndatos de docentes        DDOC        \ndatos de estudiantes     DEST"],
+        ["\nHola {}. Si desea saber\nACERCA DE                  INGRESE\nInformación general	     INFO\nmaterias                   MATERIA\ncarreras                   CARRERA\ndatos de docentes          DDOC\ndatos de estudiantes       DEST\n"],
         get_nomape_docente
     ],
+    [
+        r"MENU_DOC",
+        ["\nSi desea saber\nACERCA DE                  INGRESE\nInformación general	   INFO\nMaterias                   MATERIA\nCarreras                   CARRERA\nDatos de docentes          DDOC\nDatos de estudiantes       DEST\n"],None
+    ],
     [   r"MATERIA",
-        ["Ingrese la letra 'M'+ espacio, seguido el nombre de la materia."],None
+        ["\nIngrese la letra 'M'+ espacio, seguido el nombre de la materia."],None
 
     ],
     [   r"M (.*)",
-        ["{}"],
+        ["\n{}"],
         get_datos_materias
     ],
     [   r"CARRERA",
-        ["CARRERA: Profesorado de educacion inicial\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+I        \nTitulo          CT+espacio+I        \nNivel           CN+espacio+I        \n\nCARRERA: Profesorado de educacion especial\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+E        \nTitulo          CT+espacio+E        \nNivel           CN+espacio+E        \n\nCARRERA: Tecnicatura superior en analisis desarrollo y programacion de aplicaciones\nSi desea saber        \nACERCA DE     INGRESE        \nMaterias        CM+espacio+A        \nTitulo          CT+espacio+A        \nNivel           CN+espacio+A        \n"],None
+        ["\nCARRERA: Profesorado de educacion inicial\nSi desea saber        \nACERCA DE       INGRESE        \nMaterias        CM+espacio+I        \nTitulo          CT+espacio+I        \nNivel           CN+espacio+I        \n\nCARRERA: Profesorado de educacion especial\nSi desea saber        \nACERCA DE       INGRESE        \nMaterias        CM+espacio+E        \nTitulo          CT+espacio+E        \nNivel           CN+espacio+E        \n\nCARRERA: Tecnicatura superior en analisis desarrollo y programacion de aplicaciones\nSi desea saber        \nACERCA DE       INGRESE        \nMaterias        CM+espacio+A        \nTitulo          CT+espacio+A        \nNivel           CN+espacio+A\n"],None
     ],
     [   r"CT (.*)",
-        ["{}"],
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese CARRERA"],
         get_titulo_carrera
     ],
     [   r"CN (.*)",
-        ["{}"],
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese CARRERA"],
         get_nivel_carrera
     ],
     [   r"CM (.*)",
-        ["{}"],
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese CARRERA"],
         get_materias_carreras
     ],
     [   r"DDOC",
-        ["Ingrese el DD + espacio seguido del número de legajo del docente"],None
+        ["\nIngrese el DD + espacio seguido del número de legajo del docente\n"],None
     ],
     [   r"(DD [0-9]{1,2})",
-        ["{}"],
-        get_datos_docentes
+        ["\n{}"],
+        get_datos_docentes_por_legajo
+    ],
+    [   r"NDOC (.*)",
+        ["\n{}"],
+        get_datos_docentes_por_nombre
     ],
     [   r"DEST",
-        ["Ingrese el DE + espacio seguido del número de legajo del estudiante"],None
+        ["\nIngrese el DE + espacio seguido del número de legajo del estudiante\n"],None
     ],
     [   r"(DE [0-9]{1,2})",
-        ["{}"],
+        ["\n{}"],
         get_datos_estudiantes
     ],
     
     [   r"(.*)estudiante|estudiante(.*)|(.*)estudiante(.*)|estudiante",
-        ["Ingrese 'DNI'+ espacio, seguido de su número de dni"],None
+        ["\nIngrese 'DNI'+ espacio, seguido de su número de dni"],None
     ],
     [   r"(DNI [0-9]{8})",
-        ["Hola {}.\nSi desea saber\nACERCA DE                INGRESE\nInformación general	   INFO\nmatriculación		   MATRICULACION\nnotas			   NOTAS\nasistencia		   ASISTENCIAS"],
+        ["\nHola {}.\nSi desea saber\nACERCA DE                  INGRESE\nInformación general	   INFO\nmatriculación		   MATRICULACION\nnotas			   NOTAS\nasistencia		   ASISTENCIAS"],
         get_nomape_estudiante
+    ],
+    [   r"MENU_EST",
+        ["\nSi desea saber\nACERCA DE                  INGRESE\nInformación general	   INFO\nMatriculación		   MATRICULACION\nNotas			   NOTAS\nAsistencia		   ASISTENCIAS"],None
     ],
     [   r"legajo|(.*)legajo|legajo(.*)|(.*)legajo(.*)",
         ["\nSI ES          INGRESE        \nEstudiante     LEG_EST + espacio + Nro de DNI        \nDocente        LEG_DOC + espacio + Nro de DNI"],None
     ],
     [   r"(LEG_EST [0-9]{8})",
-        ["Tu número de legajo es{}. Pon la palabra INICIO para volver al menú principal"],
+        ["\nTu número de legajo es {}."],
         get_legajo_estudiante
     ],
     [   r"(LEG_DOC [0-9]{8})",
-        ["Tu número de legajo es {}. Pon la palabra INICIO para volver al menú principal"],
+        ["\nTu número de legajo es {}."],
         get_legajo_docente
     ],
     [   r"MATRICULACION",
-        ["Ingrese MMAT + espacio + Nro de legajo"],None
+        ["\nIngrese MMAT + espacio + Nro de legajo"],None
     ],
     [   r"(MMAT [0-9]{1,2})",
-        ["{}"],
+        ["\n{}"],
         get_matriculas_estudiantes
     ],
     [   r"NOTAS",
-        ["Si desea saber        \nACERCA DE                INGRESE        \nnotas aprobadas	       VMNOT + espacio + Nro de legajo        \nnotas desaprobadas	   FMNOT + espacio + Nro de legajo        \ntodas las notas	       MNOT + espacio + Nro de legajo"],None
+        ["\nSi desea saber\nACERCA DE                INGRESE\nNotas aprobadas	         VMNOT + espacio + Nro de legajo\nNotas desaprobadas	 FMNOT + espacio + Nro de legajo\nTodas las notas	         MNOT + espacio + Nro de legajo"],None
     ],
     [   r"(MNOT [0-9]{1,2})",
-        ["{}"],
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese NOTAS"],
         get_notas_estudiantes
     ],
         [r"(VMNOT [0-9]{1,2})",
-        ["{}"],
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese NOTAS"],
         get_notas_aprobadas_estudiantes
     ],
         [r"(FMNOT [0-9]{1,2})",
-        ["{}"],
+          ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese NOTAS"],
         get_notas_desaprobadas_estudiantes
     ],
-    [   r"(MASISF [0-9]{1,2})",
-        ["{}"],
-        get_inasistencia_estudiantes
+    [   r"ASISTENCIAS",
+        ["\nSi desea saber        \nACERCA DE                INGRESE\nPresencias     	         VMASIS + espacio + Nro de legajo\nAusencias                FMASIS + espacio + Nro de legajo\nTodas las asistencias    MASIS + espacio + Nro de legajo"],None
     ],
-    [   r"(MASISV [0-9]{1,2})",
-        ["{}"],
+    [   r"(FMASIS [0-9]{1,2})",
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese ASISTENCIAS"],
+        get_ausencia_estudiantes
+    ],
+    [   r"(VMASIS [0-9]{1,2})",
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese ASISTENCIAS"],
+        get_presencia_estudiantes
+    ],
+    [   r"(MASIS [0-9]{1,2})",
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese ASISTENCIAS"],
         get_asistencia_estudiantes
     ],
-
-
+    [   r"(.*)invitado|invitado(.*)|(.*)invitado(.*)|invitado|MENU_INV",
+        ["\nHola. Si desea saber\nACERCA DE                  INGRESE\nInformación general	   INFO\nMaterias                   MATERIA\nCarreras                   CARRERA\nDatos de docentes          NDOC + espacio + nombre del docente"],None
+    ],
+    [   r"INFO",
+        ["\nSi desea información\nACERCA DE                  INGRESE\nDatos de contacto          DATOS + espacio + INFO\nDatos institucionales      INST + espacio + INFO"],None
+    ],
+    [   r"DATOS (.*)",
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese INFO"],
+        get_datos_institucionales_contacto
+    ],
+    [   r"INST (.*)",
+        ["\n{}\n\n****************************************************\nSi desea volver al menú anterior ingrese INFO"],
+        get_datos_institucionales
+    ],
 
 
 ]
