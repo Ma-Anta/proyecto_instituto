@@ -4,25 +4,29 @@ from abc import ABC,abstractmethod
 import os
 import platform
 
+#INTERFACES
+#La idea del manejo de las interfaces es sencilla, las clases se van instanciando a medida que se necesitan.
+
+#INTERFAZ PADRE.
 class Interfaz():
     _menu = {}
 
     def __init__(self,p_sesion):
         self._sesion = p_sesion
-   
+    #METODO PARA MANEJAR MENU
     def _manejoMenu(self):
         print("\n")
         for item in self._menu:
             print(item," - ",self._menu[item])
         opcion = input("\nIngrese una opcion: ")
         return opcion   
-    
+    #METODO PARA LIMPIAR LA PANTALLA
     def _limpiar(self):
         if platform.system() == "Windows":
             os.system('cls')
         elif platform.system() == "Linux":
             os.system('clear')
-    
+    #METODO ABSTRACTO QUE POSEE EL BUCLE DE EJECUCION DE UNA INTERFAZ
     @abstractmethod
     def _ejecucion(self):
         exit = False
@@ -31,28 +35,15 @@ class Interfaz():
                 exit = self._opciones()
         except ValueError:
             print("\nError en la ejecución del programa.\n",ValueError)
-    
+    #METODO ABSTRACTO, CADA CLASE HIJA REDEFINE EL METODO CON LAS OPCIONES DE CADA UNA
     @abstractmethod
     def _opciones(self):
         pass
-    
-    def _misDatos(self):
-        menu = {"1":"Ver datos personales","2":"Modificar datos personales","3":"Cambiar contraseña","4":"Volver"}
-        self._menu = menu
-        exit = False
-        while exit != True:
-            opcion = self._manejoMenu()
-            if opcion == "1":
-                self._limpiar()
-                self._sesion["Datos"]._muestraDatos(True)
-            if opcion == "2":
-                self._limpiar()
-                self._sesion["Datos"]._modificaDatos()
-            if opcion == "3":
-                pass
-            if opcion == "4":
-                exit = True
-
+#INTERFAZ DE INFORMACION DE BUSQUEDA DE CARRERAS,MATERIAS, DOCENTES O ESTUDIANTES.
+#LOS DOCENTES PUEDEN VER DATOS DE DOCENTES Y ESTUDIANTES.
+#LOS DOCENTES PUEDEN VER DATOS DE DOCENTES Y ESTUDIANTES.
+#LOS INVITADOS PUEDEN VER SOLO DATOS DE DOCENTES.
+#TODOS PUEDEN VER DATOS DE CARRERAS Y MATERIAS.
 class InterfazInformacion(Interfaz):
     _menuInfo = {"1":"Carreras","2":"Materias","3":"Docentes","4":"Estudiantes","5":"Volver"}
 
@@ -66,9 +57,9 @@ class InterfazInformacion(Interfaz):
             self._menu = self._menuInfo
         opcion = self._manejoMenu()
         if opcion == "1":
-            self._info(1)
+            self._info("carrera")
         if opcion == "2":
-            self._info(2)
+            self._info("materia")
         if opcion == "3":
             self._limpiar()
             buscarPersonas = interfazBusquedaPersonas(self._sesion,"docente")
@@ -86,18 +77,17 @@ class InterfazInformacion(Interfaz):
         menuInfo = {"1":"Listar todas","2":"Buscar y listar","3":"Volver"}
         diccionario = {}
         self._menu = menuInfo
-        if p_busqueda == 1:
-            diccionario = fc.busquedaCarrera()
-        if p_busqueda == 2:
-            diccionario = fc.busquedaMateria()
+        diccionario = fc.busquedaCarMat(p_busqueda)
         exit = False
         while exit != True:
+            self._menu = menuInfo
             if p_busqueda == 1:
                 print("\nMENU INFO CARRRERAS\n")
             else:
                 print("\nMENU INFO MATERIAS\n")
             opcion = self._manejoMenu()
             if opcion == "1":
+                self._limpiar()
                 for item in diccionario:
                     diccionario[item]._imprimeObjeto(False)
             if opcion == "2":
@@ -110,7 +100,7 @@ class InterfazInformacion(Interfaz):
                     print("\nCarrera no encontrada.\n")
             if opcion == "3":
                 exit = True
-
+#INTERFAZ DE BUSQUEDA DE PERSONAS.
 class interfazBusquedaPersonas(Interfaz):
     _menuBusquedaPersonas = {"1":"Todos","2":"Por nombre","3":"Por legajo","4":"Volver"}
     _dictPersonas = {}
@@ -128,13 +118,16 @@ class interfazBusquedaPersonas(Interfaz):
         self._menu = self._menuBusquedaPersonas
         opcion = self._manejoMenu()
         if opcion == "1":
+            self._limpiar()
             self._dictPersonas = fc.busquedaPersona(self._tipo)
             fc.imprimirPersona(self._dictPersonas)
         if opcion == "2":
+            self._limpiar()
             nombre = input("Ingrese nombre a buscar: ")
             self._dictPersonas = fc.busquedaPersona(p_tipo = self._tipo,p_nombre = nombre)
             fc.imprimirPersona(self._dictPersonas)
         if opcion == "3":
+            self._limpiar()
             if self._sesion["tipo_usuario"] == "invitado":
                 print("\nOpción inexistente\n")
             else:
@@ -146,7 +139,7 @@ class interfazBusquedaPersonas(Interfaz):
                     fc.imprimirPersona(self._dictPersonas)
         if opcion == "4":
             return True
-        
+#INTERFAZ DE INICIO DEL PROGRAMA.               
 class InterfazInicio(Interfaz):
     _menuIngreso = {"1":"Usuario","2":"Invitado","3":"Salir"}
 
@@ -167,13 +160,14 @@ class InterfazInicio(Interfaz):
             else:
                 print("\n"+inicio+"\n")
         if opcion == "2":
+            self._limpiar()
             self._sesion["tipo_usuario"] = "invitado"
             invitado = interfazInvitado(self._sesion)
             invitado._ejecucion()
         if opcion == "3":
             print("\nGracias! \nVuelvas prontos! (leer como Apu)\n")
             return True
-      
+#INTERFAZ INICIAL PARA USUARIOS  
 class interfazUsuario(Interfaz):
     
     _menuEst = {"1":"Datos personales","2":"Datos academicos","3":"Información","4":"Cerrar sesion"}
@@ -198,7 +192,24 @@ class interfazUsuario(Interfaz):
             busqueda._ejecucion()
         elif opcion == "4":
             return True
-
+    
+    def _misDatos(self):
+        menu = {"1":"Ver datos personales","2":"Modificar datos personales","3":"Cambiar contraseña","4":"Volver"}
+        self._menu = menu
+        exit = False
+        while exit != True:
+            opcion = self._manejoMenu()
+            if opcion == "1":
+                self._limpiar()
+                self._sesion["Datos"]._muestraDatos(True)
+            if opcion == "2":
+                self._limpiar()
+                self._sesion["Datos"]._modificaDatos()
+            if opcion == "3":
+                pass
+            if opcion == "4":
+                exit = True
+#INTERFAZ INICIAL PARA INVITADOS
 class interfazInvitado(Interfaz):
     _menuInvitado = {"1":"Informacion de carreras/materias","2":"Informacion de docentes","3":"Salir"}
     
@@ -219,7 +230,7 @@ class interfazInvitado(Interfaz):
             buscarPersonas._ejecucion()
         if opcion == "3":
             return True
-
+#INTERFAZ PARA DATOS ACADEMICOS
 class DatosAcademicos(Interfaz):
     _menuAcademico = {"1":"Carrera","2":"Materias","3":"Volver"}
 
@@ -229,8 +240,10 @@ class DatosAcademicos(Interfaz):
     def _opciones(self):
         self._menu = self._menuAcademico
         opcion = self._manejoMenu()
-
+        if opcion == "1":
+            pass
         if opcion == "2":
+            self._limpiar()
             if self._sesion["tipo_usuario"] == "docente":
                 misMaterias = MisMateriasDoc(self._sesion)
                 misMaterias._ejecucion()
@@ -239,15 +252,15 @@ class DatosAcademicos(Interfaz):
                 misMaterias._ejecucion()
         if opcion == "3":
             return True
-
+#INTERFAZ PARA MATERIAS DE ESTUDIANTES
 class MisMateriasEst(Interfaz):
-    _menuDatos = {"1":"Mis materias","2":"Mis notas","3":"Mis asistencias","4":"Salir"}
+    _menuDatos = {"1":"Matriculacion","2":"Mis notas","3":"Mis asistencias","4":"Salir"}
 
     def __init__(self,p_sesion):
         super().__init__(p_sesion)
     
     def _opciones(self):
-        print("\nMIS DATOS\n")
+        print("\nMIS MATERIAS\n")
         usuario = self._sesion["Datos"]
         self._menu = self._menuDatos
         opcion = self._manejoMenu()
@@ -256,35 +269,15 @@ class MisMateriasEst(Interfaz):
             usuario._muestraMaterias(True)
         if opcion == "2":
             self._limpiar()
-            id = fc.materiasDisponibles(usuario)
-            notas = usuario._getNotaMateria(p_materia_id = id)
-            for nota in notas:
-                print("\nMateria: {}".format(nota))
-                for informacion in notas[nota]:
-                    print("\nFecha: {}\nNota: {}\nTipo nota: {}".format(informacion[0],informacion[1],informacion[2]))
+            fc.busquedaNotas(self._sesion)
         if opcion == "3":
             self._limpiar()
             print("\nASISTENCIAS\n")
-            opcion = int(input("\n1 - Por materia\n2 - Por año\n3 - Ambos\n"))
-            if opcion == 1:
-                id = fc.materiasDisponibles(usuario)
-                asistencia = usuario._getAsistencia(p_materia_id = id)
-            elif opcion == 2:
-                anio = int(input("\nIngrese año: "))
-                asistencia = usuario._getAsistencia(p_anio = anio)
-            elif opcion == 3:
-                id = fc.materiasDisponibles(usuario)
-                anio = int(input("\nIngrese año: "))
-                asistencia = usuario._getAsistencia(p_materia_id = id,p_anio = anio)
-            for dato in asistencia:
-                if dato[2] == True:
-                    presencia = "Presente"
-                else:
-                    presencia = "Ausente"
-                print("\nFecha: {}\nAsistencia: {}".format(dato[1],presencia))
+            asistencias = Asistencias(self._sesion)
+            asistencias._ejecucion()
         if opcion == "4":
             return True
-
+#INTERFAZ PARA MATERIAS DE DOCENTES
 class MisMateriasDoc(Interfaz):
     _menuMaterias = {"1":"Alumnos inscriptos","2":"Asistencias","3":"Notas","4":"Volver"}
 
@@ -293,11 +286,9 @@ class MisMateriasDoc(Interfaz):
     
     def _opciones(self):
         self._menu = self._menuMaterias
-        print("\nMIS MATERIAS")
         opcion = self._manejoMenu()
         if opcion == "1":
             self._limpiar()
-            print("\nMATERIAS DISPONIBLES")
             id = fc.materiasDisponibles(self._sesion["Datos"])
             anio = int(input("\nIngrese año de consulta: "))
             asistentes = self._sesion["Datos"]._materias[id]._alumnosInscriptos(anio)
@@ -309,12 +300,10 @@ class MisMateriasDoc(Interfaz):
             menuAsist._ejecucion()
         elif opcion == "3":
             self._limpiar()
-            notas = fc.busquedaNotas(self._sesion["Datos"])
-            for nota in notas:
-                print("\nMateria: {}\nFecha: {}\nNota: {}\nTipo nota: {}".format(nota,notas[nota][1],notas[nota][2],notas[nota][3]))
+            fc.busquedaNotas(self._sesion)
         elif opcion == "4":
             return True
-
+#INTERFAZ PARA ASISTENCIAS
 class Asistencias(Interfaz):
     _menuAsist = {"1":"Por materia y año","2":"Asistencias porcentuales","3":"Volver"}
 
@@ -326,8 +315,72 @@ class Asistencias(Interfaz):
         self._menu = self._menuAsist
         opcion = self._manejoMenu()
         if opcion == "1":
-            fc.busquedaAsistencias(self._sesion["Datos"],1)
+            self._limpiar()
+            fc.busquedaAsistencias(self._sesion,1)
         elif opcion == "2":
-            fc.busquedaAsistencias(self._sesion["Datos"],2)
+            self._limpiar()
+            fc.busquedaAsistencias(self._sesion,2)
         elif opcion == "3":
+            return True
+#INTERFAZ DE PRECEPTORES
+class DatosAcademicosPreceptor(Interfaz):
+    _menuPrec = {"1":"Alumnos","2":"Docentes","3":"Carreras","4":"Materias","5":"Volver"}
+
+    def __init__(self,p_sesion):
+        super().__init__(p_sesion)
+    
+    def _opciones(self):
+        self._menu = self._menuPrec
+        opcion = self._manejoMenu()
+        if opcion == "1":
+            self._limpiar()
+            print("\nALUMNOS")
+            manejoAlumnos = ManejoAlumnos(self._sesion)
+            manejoAlumnos._ejecucion()
+        if opcion == "2":
+            self._limpiar()
+        if opcion == "3":
+            self._limpiar()
+        if opcion == "4":
+            self._limpiar()
+        if opcion == "5":
+            return True
+#INTERFAZ PARA EL MANEJO DE ALUMNOS
+class ManejoAlumnos(Interfaz):
+    _menuManejoAlumnos = {"1":"Insertar/Modificar Notas","2":"Insertar/Modificar Asistencias","3":"Volver"}
+
+    def __init__(self,p_sesion):
+        super().__init__(p_sesion)
+    
+    def _opciones(self):
+        self._menu = self._menuManejoAlumnos
+        opcion = self._manejoMenu()
+        if opcion == "1":
+            self._limpiar()
+            print("\nInsertar notas")
+            legajo = int(input("\nIngrese legajo del alumno: "))
+            materia = int(input("\nIngrese id de la materia: "))
+            tipo_nota = fc.elegirTipoNota()
+            fecha = input("\nIngrese la fecha de examen: ")
+            nota = float(input("\nIngrese la nota: "))
+            datos = [legajo,materia,tipo_nota,fecha,nota]
+            print(self._sesion["Datos"]._insertaNotas(datos))
+        if opcion == "2":
+            self._limpiar()
+            print("\nInsertar asistencia: ")
+            carrera = int(input("\nIngrese el id de la carrera: "))
+            materia = int(input("\nIngrese el id de la materia: "))
+            legajo = int(input("\nIngrese el legajo del alumno: "))
+            fecha = input("\nIngrese la fecha: ")
+            asistencia = input("\nIngrese presente o ausente: ")
+            if asistencia == "presente":
+                asistencia = True
+            elif asistencia == "ausente":
+                asistencia = False
+            else:
+                print("\nError en la insercion de datos")
+            if asistencia == True or asistencia == False:
+                datos = [carrera,materia,legajo,fecha,asistencia]
+                print(self._sesion["Datos"]._insertaAsistencia(datos))
+        if opcion == "3":
             return True
